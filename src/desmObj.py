@@ -19,7 +19,8 @@ def name_parse(name):
 def main(args):
     OBJECT_NAME = "object"
     OUTPUT_NAME = "output"
-    # subscripts used: vx vy vz f1 f2 f3 col
+    FLIP_AXES = (-1,1,1)
+    # subscripts used: v f c
 
     
     
@@ -34,9 +35,9 @@ def main(args):
         entry = line.split()
         match entry[0]:
             case 'v':
-                vertices.append((float(entry[1]),\
-                                float(entry[2]),\
-                                float(entry[3])))
+                vertices.append((FLIP_AXES[0]*float(entry[1]),\
+                                FLIP_AXES[1]*float(entry[2]),\
+                                FLIP_AXES[2]*float(entry[3])))
                 vertex_colors.append((float(entry[4]),\
                                     float(entry[5]),\
                                     float(entry[6])))
@@ -55,39 +56,34 @@ def main(args):
                               vertex_colors[face[2]-1])
         face_colors.append(face_color)
     
-    result_dict = {"vx" : name_parse(OBJECT_NAME+"vx")+"=\\left[",
-                   "vy" : name_parse(OBJECT_NAME+"vy")+"=\\left[",
-                   "vz" : name_parse(OBJECT_NAME+"vz")+"=\\left[",
-                   "f1" : name_parse(OBJECT_NAME+"f1")+"=\\left[",
-                   "f2" : name_parse(OBJECT_NAME+"f2")+"=\\left[",
-                   "f3" : name_parse(OBJECT_NAME+"f3")+"=\\left[",
-                   "col" : name_parse(OBJECT_NAME+"col")+"=\\left["}
+
+    result_dict = {"v" : name_parse(OBJECT_NAME+"v")+"=\\left[",
+                   "f" : name_parse(OBJECT_NAME+"f")+"=\\left[",
+                   "c" : name_parse(OBJECT_NAME+"c")+"=\\left["}
     
     for vertex in vertices:
-        result_dict["vx"] += str(vertex[0]) + ","
-        result_dict["vy"] += str(vertex[1]) + ","
-        result_dict["vz"] += str(vertex[2]) + ","
+        # format() used to avoid str() making, for exmaple, 1e-06
+        # which would mess up the stringifying
+        result_dict["v"] += "\\left("+format(vertex[0], "f")+","\
+                         + format(vertex[1], "f") + ","\
+                         + format(vertex[2], "f") + "\\right),"
 
     # remove the last comma from the string and add ending bracket
-    result_dict["vx"] = result_dict["vx"][:-1] + "\\right]"
-    result_dict["vy"] = result_dict["vy"][:-1] + "\\right]"
-    result_dict["vz"] = result_dict["vz"][:-1] + "\\right]"
+    result_dict["v"] = result_dict["v"][:-1] + "\\right]"
 
     for face in faces:
-        result_dict["f1"] += str(face[0]) + ","
-        result_dict["f2"] += str(face[1]) + ","
-        result_dict["f3"] += str(face[2]) + ","
+        result_dict["f"] += "\\left("+str(face[0]) + ","\
+                         + str(face[1]) + ","\
+                         + str(face[2]) + "\\right),"
 
-    result_dict["f1"] = result_dict["f1"][:-1] + "\\right]"
-    result_dict["f2"] = result_dict["f2"][:-1] + "\\right]"
-    result_dict["f3"] = result_dict["f3"][:-1] + "\\right]"
+    result_dict["f"] = result_dict["f"][:-1] + "\\right]"
     
     for color in face_colors:
-        result_dict["col"] += "\\operatorname{rgb}\\left("\
+        result_dict["c"] += "\\operatorname{rgb}\\left("\
                             + str(int(255 * color[0])) + ","\
                             + str(int(255 * color[1])) + ","\
                             + str(int(255 * color[2])) + "\\right),"
-    result_dict["col"] = result_dict["col"][:-1] + "\\right]"
+    result_dict["c"] = result_dict["c"][:-1] + "\\right]"
     
     result = ""
     for key in result_dict:
